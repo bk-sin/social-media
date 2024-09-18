@@ -7,7 +7,7 @@ const userRepository = createAPIUserRepository() as UserRepository;
 
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse
+  res: NextApiResponse,
 ) {
   if (req.method === "POST") {
     const { username, email, password } = req.body;

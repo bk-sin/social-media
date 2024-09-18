@@ -11,7 +11,7 @@ export const hashPassword = async (password: string): Promise<string> => {
 // Verifica una contraseña con un hash
 export const verifyPassword = async (
   password: string,
-  hash: string
+  hash: string,
 ): Promise<boolean> => {
   return bcrypt.compare(password, hash);
 };

@@ -1,0 +1,4 @@
+npx lint-staged
+npm run format
+npm run check
+npm run lint
