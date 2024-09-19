@@ -1,15 +1,15 @@
-import { hashPassword, verifyPassword } from "@/utils/auth";
-import { UserDataCreate } from "../domain/UserDataCreate";
-import { User } from "../domain/UserModel";
-import { UserRepository } from "../domain/UserRepository";
 import prisma from "@/database/prismaClient";
+import {
+  UserDataToAuthenticate,
+  UserDataToRegister,
+  UserRepository,
+} from "../domain";
+import { generateToken, hashPassword, verifyPassword } from "@/utils/auth";
+import { toUserDTO } from "../application/user.dto";
 
-export function createAPIUserRepository(): UserRepository {
-  const create = async (userData: UserDataCreate): Promise<User> => {
+export const prismaUserRepository: UserRepository = {
+  create: async (userData: UserDataToRegister) => {
     const { username, email, password } = userData;
-    if (!username || !email || !password) {
-      throw new Error("Username, email and password are required");
-    }
 
     const existingUser = await prisma.user.findFirst({
       where: { OR: [{ email }, { username }] },
@@ -26,17 +26,14 @@ export function createAPIUserRepository(): UserRepository {
           password: hashedPassword,
         },
       });
-      return user;
+      const token = generateToken({ id: user.id, username: user.username });
+      return toUserDTO(user, token);
     } catch (error) {
       throw new Error(`Failed to create user: ${error}`);
     }
-  };
-
-  const authenticate = async (userData: UserDataCreate): Promise<User> => {
+  },
+  authenticate: async (userData: UserDataToAuthenticate) => {
     const { username, email, password } = userData;
-    if (!username || !email || !password) {
-      throw new Error("Username, email and password are required");
-    }
 
     const user = await prisma.user.findFirst({
       where: { OR: [{ email }, { username }] },
@@ -50,17 +47,12 @@ export function createAPIUserRepository(): UserRepository {
     if (!isValidPassword) {
       throw new Error("Invalid credentials");
     }
+    const token = generateToken({ id: user.id, username: user.username });
 
-    return user;
-  };
-  const getById = async (id: number): Promise<User | null> => {
+    return toUserDTO(user, token);
+  },
+  getById: async (id: number) => {
     const user = prisma.user.findUnique({ where: { id } });
     return user;
-  };
-
-  return {
-    create,
-    getById,
-    authenticate,
-  };
-}
+  },
+};

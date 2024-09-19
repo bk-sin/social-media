@@ -1,9 +1,12 @@
-import { UserDataCreate } from "@/modules/users/domain/UserDataCreate";
-import { UserRepository } from "@/modules/users/domain/UserRepository";
-import { createAPIUserRepository } from "@/modules/users/infra/APIUserRepository";
-import type { NextApiRequest, NextApiResponse } from "next";
+import { NextApiResponse, NextApiRequest } from "next";
+import { z } from "zod";
 
-const userRepository = createAPIUserRepository() as UserRepository;
+import { authenticate } from "@/modules/users/application/authUser";
+import {
+  UserDataToAuthenticate,
+  UserDataAuthenticated,
+} from "@/modules/users/domain";
+import { prismaUserRepository } from "@/modules/users/infra/prismaUserRepository";
 
 export default async function handler(
   req: NextApiRequest,
@@ -11,17 +14,19 @@ export default async function handler(
 ) {
   if (req.method === "POST") {
     const { username, email, password } = req.body;
-    if (!username || !email || !password) {
-      return res
-        .status(400)
-        .json({ error: "Username, password and email are required" });
-    }
 
     try {
-      const userData = { username, email, password } as UserDataCreate;
-      const user = await userRepository.authenticate(userData);
+      const userData = { username, email, password } as UserDataToAuthenticate;
+      const user: UserDataAuthenticated = await authenticate(
+        prismaUserRepository,
+        userData,
+      );
       return res.status(201).json(user);
     } catch (error) {
+      if (error instanceof z.ZodError) {
+        const firstError = error.errors[0];
+        return res.status(400).json({ error: firstError.message });
+      }
       if (error instanceof Error) {
         return res.status(500).json({ error: error.message });
       }

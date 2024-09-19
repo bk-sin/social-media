@@ -1,5 +1,5 @@
-import { User } from "../../domain/UserModel";
-import { UserRepository } from "../../domain/UserRepository";
+import { User } from "../domain";
+import { UserRepository } from "../domain/UserRepository";
 
 export function createUser(
   userRepository: UserRepository,

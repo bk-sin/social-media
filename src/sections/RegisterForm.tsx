@@ -1,65 +1,28 @@
-import axios from "axios";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
+import { LoaderCircle, EyeOffIcon, EyeIcon } from "lucide-react";
+
+import { Button } from "@/components/ui/button";
 import {
   CardTitle,
   CardHeader,
+  CardFooter,
   CardDescription,
   CardContent,
   Card,
-  CardFooter,
 } from "@/components/ui/card";
 import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
   FormMessage,
+  FormLabel,
+  FormItem,
+  FormField,
+  FormControl,
+  Form,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { registerSchema } from "@/validations/registerSchema";
-import { useState } from "react";
-import { UserDataCreate } from "@/modules/users/domain/UserDataCreate";
-
-import { EyeIcon, EyeOffIcon, LoaderCircle } from "lucide-react";
-import { Button } from "@/components/ui/button";
-export interface RegisterFormData {
-  username: string;
-  lastName: string;
-  email: string;
-  password: string;
-}
+import { useRegisterUser } from "@/hooks/useRegisterUser";
 
 const RegisterForm = () => {
-  const [showPassword, setShowPassword] = useState(false);
-  const defaultValues: UserDataCreate = {
-    email: "",
-    password: "",
-    username: "",
-  };
-
-  const form = useForm<z.infer<typeof registerSchema>>({
-    resolver: zodResolver(registerSchema),
-    defaultValues,
-  });
-
-  const onSubmit = async (values: z.infer<typeof registerSchema>) => {
-    try {
-      await axios.post("/api/users/register", {
-        username: values.username,
-        email: values.email,
-        password: values.password,
-      });
-      alert("Registration successful!");
-      form.reset();
-    } catch (err) {
-      if (err instanceof Error) {
-        console.error(err.message || "Error during registration");
-      }
-    }
-  };
+  const { loading, form, showPassword, showPasswordHandler, onSubmit } =
+    useRegisterUser();
   return (
     <Card className="w-full max-w-md mx-auto">
       <CardHeader>
@@ -114,7 +77,7 @@ const RegisterForm = () => {
                           variant="ghost"
                           size="sm"
                           className="absolute right-0 bottom-0 h-full px-3 py-2 hover:bg-transparent"
-                          onClick={() => setShowPassword((prev) => !prev)}
+                          onClick={showPasswordHandler}
                         >
                           {showPassword ? (
                             <EyeIcon className="h-4 w-4" aria-hidden="true" />
@@ -137,7 +100,7 @@ const RegisterForm = () => {
         <CardFooter>
           <Button
             type="submit"
-            disabled={form.formState.isSubmitting}
+            disabled={loading || form.formState.isSubmitting}
             className="w-full"
           >
             {form.formState.isSubmitting ? (

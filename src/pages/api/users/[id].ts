@@ -1,5 +1,5 @@
 import { UserRepository } from "@/modules/users/domain/UserRepository";
-import { createAPIUserRepository } from "@/modules/users/infra/APIUserRepository";
+import { createAPIUserRepository } from "@/modules/users/infra/prismaUserRepository";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 const userRepository = createAPIUserRepository() as UserRepository;

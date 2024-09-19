@@ -1,9 +1,7 @@
-import { UserDataCreate } from "@/modules/users/domain/UserDataCreate";
-import { UserRepository } from "@/modules/users/domain/UserRepository";
-import { createAPIUserRepository } from "@/modules/users/infra/APIUserRepository";
-import type { NextApiRequest, NextApiResponse } from "next";
-
-const userRepository = createAPIUserRepository() as UserRepository;
+import { createUser } from "@/modules/users/application/createUser";
+import { UserDataToRegister } from "@/modules/users/domain";
+import { prismaUserRepository } from "@/modules/users/infra/prismaUserRepository";
+import { NextApiRequest, NextApiResponse } from "next";
 
 export default async function handler(
   req: NextApiRequest,
@@ -11,15 +9,10 @@ export default async function handler(
 ) {
   if (req.method === "POST") {
     const { username, email, password } = req.body;
-    if (!username || !email || !password) {
-      return res
-        .status(400)
-        .json({ error: "Username, password and email are required" });
-    }
 
     try {
-      const userData = { username, email, password } as UserDataCreate;
-      const user = await userRepository.create(userData);
+      const userData = { username, email, password } as UserDataToRegister;
+      const user = await createUser(prismaUserRepository, userData);
       return res.status(201).json(user);
     } catch (error) {
       if (error instanceof Error) {
