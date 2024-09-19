@@ -7,7 +7,7 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
-export const useRegisterUser = () => {
+export const useLoginUser = () => {
   const [loading, setLoading] = useState(false);
 
   const register = async (data: UserDataToRegister) => {

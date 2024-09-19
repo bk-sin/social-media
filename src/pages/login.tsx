@@ -1,10 +1,10 @@
-import RegisterForm from "@/components/sections/RegisterForm";
+import LoginForm from "@/components/sections/LoginForm";
 import { NextPage } from "next";
 
 const RegisterPage: NextPage = () => {
   return (
     <div className="container mx-auto py-10">
-      <RegisterForm />
+      <LoginForm />
     </div>
   );
 };
