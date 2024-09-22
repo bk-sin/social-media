@@ -13,10 +13,10 @@ export default async function handler(
   res: NextApiResponse,
 ) {
   if (req.method === "POST") {
-    const { username, email, password } = req.body;
+    const { username, password } = req.body;
 
     try {
-      const userData = { username, email, password } as UserDataToAuthenticate;
+      const userData = { username, password } as UserDataToAuthenticate;
       const user: UserDataAuthenticated = await authenticate(
         prismaUserRepository,
         userData,

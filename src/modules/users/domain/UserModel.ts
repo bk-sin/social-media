@@ -9,8 +9,7 @@ export interface User {
 export type UserDataToRegister = Omit<User, "id" | "createdAt">;
 
 export interface UserDataToAuthenticate {
-  username?: string;
-  email?: string;
+  username: string;
   password: string;
 }
 

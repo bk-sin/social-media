@@ -1,20 +1,70 @@
 generator client {
   provider = "prisma-client-js"
 }
- 
+
 datasource db {
-  provider = "postgresql"
-  // Uses connection pooling
-  url = env("POSTGRES_VERCEL_PRISMA_URL")
-  // Uses direct connection, ⚠️ make sure to keep this to `POSTGRES_URL_NON_POOLING`
-  // or you'll have dangling databases from migrations
+  provider  = "postgresql"
+  url       = env("POSTGRES_VERCEL_PRISMA_URL")
   directUrl = env("POSTGRES_VERCEL_URL_NON_POOLING")
 }
- 
+
 model User {
-  id        Int      @id @default(autoincrement())
-  username  String   @unique
-  email     String   @unique
+  id        Int       @id @default(autoincrement())
+  username  String    @unique
+  email     String    @unique
   password  String
+  createdAt DateTime  @default(now())
+  comments  Comment[]
+  follows   Follow[]  @relation("followersRelation")
+  followers Follow[]  @relation("followsRelation")
+  likes     Like[]
+  posts     Post[]
+}
+
+model Post {
+  id          Int          @id @default(autoincrement())
+  userId      Int
+  content     String
+  createdAt   DateTime     @default(now())
+  attachments Attachment[]
+  comments    Comment[]
+  likes       Like[]
+  user        User         @relation(fields: [userId], references: [id])
+}
+
+model Attachment {
+  id        Int      @id @default(autoincrement())
+  postId    Int
+  mediaType String
+  mediaUrl  String
   createdAt DateTime @default(now())
+  post      Post     @relation(fields: [postId], references: [id])
+}
+
+model Like {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  postId    Int
+  createdAt DateTime @default(now())
+  post      Post     @relation(fields: [postId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+model Comment {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  postId    Int
+  content   String
+  createdAt DateTime @default(now())
+  post      Post     @relation(fields: [postId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+model Follow {
+  id          Int      @id @default(autoincrement())
+  followerId  Int
+  followingId Int
+  createdAt   DateTime @default(now())
+  follower    User     @relation("followersRelation", fields: [followerId], references: [id])
+  following   User     @relation("followsRelation", fields: [followingId], references: [id])
 }

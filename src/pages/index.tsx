@@ -1,7 +1,24 @@
+import ImageKit from "imagekit";
 import Head from "next/head";
-import Image from "next/image";
 import localFont from "next/font/local";
-import styles from "@/styles/Home.module.css";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Cog,
+  FileImage,
+  LogOut,
+  MessageCircle,
+  User,
+  Users,
+  Video,
+  X,
+} from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useAuthStore } from "@/store/auth";
+import NavBar from "@/components/sections/NavBar";
+import { useRef, useState } from "react";
+import Image from "next/image";
 
 const geistSans = localFont({
   src: "../styles/fonts/GeistVF.woff",
@@ -23,96 +40,355 @@ export default function Home() {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <div
-        className={`${styles.page} ${geistSans.variable} ${geistMono.variable}`}
-      >
-        <main className={styles.main}>
-          <Image
-            className={styles.logo}
-            src="https://nextjs.org/icons/next.svg"
-            alt="Next.js logo"
-            width={180}
-            height={38}
-            priority
-          />
-          <ol>
-            <li>
-              Get started by editing <code>src/pages/index.tsx</code>.
-            </li>
-            <li>Save and see your changes instantly.</li>
-          </ol>
-
-          <div className={styles.ctas}>
-            <a
-              className={styles.primary}
-              href="https://vercel.com/new?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <Image
-                className={styles.logo}
-                src="https://nextjs.org/icons/vercel.svg"
-                alt="Vercel logomark"
-                width={20}
-                height={20}
-              />
-              Deploy now
-            </a>
-            <a
-              href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-              className={styles.secondary}
-            >
-              Read our docs
-            </a>
+      <div className={`${geistSans.variable} ${geistMono.variable}`}>
+        <NavBar />
+        <main className="container mx-auto mt-8 grid grid-cols-4 gap-8">
+          <aside className="col-span-1">
+            <Sidebar />
+          </aside>
+          <div className="col-span-2 space-y-8">
+            <PostForm />
+            <PostCard />
+            <PostCard />
+            <PostCard />
           </div>
+          <aside className="col-span-1 space-y-8">
+            <PeopleYouMayKnow />
+            <BoostYourPost />
+          </aside>
         </main>
-        <footer className={styles.footer}>
-          <a
-            href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              aria-hidden
-              src="https://nextjs.org/icons/file.svg"
-              alt="File icon"
-              width={16}
-              height={16}
-            />
-            Learn
-          </a>
-          <a
-            href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              aria-hidden
-              src="https://nextjs.org/icons/window.svg"
-              alt="Window icon"
-              width={16}
-              height={16}
-            />
-            Examples
-          </a>
-          <a
-            href="https://nextjs.org?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              aria-hidden
-              src="https://nextjs.org/icons/globe.svg"
-              alt="Globe icon"
-              width={16}
-              height={16}
-            />
-            Go to nextjs.org →
-          </a>
-        </footer>
       </div>
     </>
   );
 }
+
+const Sidebar = () => {
+  const { logout, user } = useAuthStore();
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>{user?.username}</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <Button variant="ghost" className="w-full justify-start">
+          <User className="mr-2 h-4 w-4" />
+          Profile
+        </Button>
+        <Button variant="ghost" className="w-full justify-start">
+          <Users className="mr-2 h-4 w-4" />
+          Find friends
+        </Button>
+        <Button variant="ghost" className="w-full justify-start">
+          <MessageCircle className="mr-2 h-4 w-4" />
+          User analytics
+        </Button>
+        <Button variant="ghost" className="w-full justify-start">
+          <Cog className="mr-2 h-4 w-4" />
+          Settings
+        </Button>
+        <Button variant="ghost" className="w-full justify-start">
+          <User className="mr-2 h-4 w-4" />
+          Security data
+        </Button>
+        <Button
+          variant="ghost"
+          className="w-full justify-start text-red-500"
+          onClick={logout}
+        >
+          <LogOut className="mr-2 h-4 w-4" />
+          Log out
+        </Button>
+      </CardContent>
+    </Card>
+  );
+};
+
+const PostForm = () => {
+  const imagekit = new ImageKit({
+    publicKey: process.env.NEXT_PUBLIC_IMAGEKIT_PUBLIC_KEY || "",
+    privateKey: process.env.NEXT_PUBLIC_IMAGEKIT_PRIVATE_KEY || "",
+    urlEndpoint: process.env.NEXT_PUBLIC_IMAGEKIT_URL_ENDPOINT || "",
+  });
+  const imgInputRef = useRef<HTMLInputElement | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [uploading, setUploading] = useState<boolean>(false);
+  const [fileId, setFileId] = useState<string | null>(null);
+  const onFileChangeCapture = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    if (!e.target.files?.length) return;
+
+    const file = e.target.files[0];
+
+    if (
+      imgInputRef.current?.accept.includes("image") &&
+      !["image/png", "image/jpeg"].includes(file.type)
+    ) {
+      alert("Solo se permiten archivos PNG o JPG.");
+      return;
+    } else if (
+      imgInputRef.current?.accept.includes("video") &&
+      file.type !== "video/mp4"
+    ) {
+      alert("Solo se permiten archivos MP4 para videos.");
+      return;
+    }
+
+    const isChangingFile =
+      fileId && imgInputRef.current?.accept.includes(file.type);
+
+    if (isChangingFile) {
+      await handleRemoveMedia();
+    }
+
+    const preview = URL.createObjectURL(file);
+    setPreviewUrl(preview);
+
+    const reader = new FileReader();
+    console.log(uploading);
+    reader.onload = async () => {
+      setUploading(true);
+      try {
+        const blob = new Blob([reader.result as ArrayBuffer], {
+          type: file.type,
+        }) as unknown as Buffer;
+
+        const upload = await imagekit.upload({
+          file: blob,
+          fileName: file.name,
+          folder: "social-media",
+        });
+
+        setFileId(upload?.fileId);
+        console.log("Subida exitosa", upload);
+      } catch (error) {
+        console.error("Error al subir el archivo", error);
+      } finally {
+        setUploading(false);
+      }
+    };
+
+    reader.readAsArrayBuffer(file);
+  };
+
+  const handleRemoveMedia = async () => {
+    setPreviewUrl(null);
+    try {
+      if (fileId) {
+        await imagekit.deleteFile(fileId);
+        console.log("Archivo eliminado de ImageKit");
+      }
+
+      setFileId(null);
+      if (imgInputRef.current) {
+        imgInputRef.current.value = "";
+      }
+    } catch (error) {
+      console.error("Error al eliminar el archivo", error);
+    }
+  };
+
+  const handleUploadMedia = async (type: "image" | "video") => {
+    if (imgInputRef.current) {
+      imgInputRef.current.accept =
+        type === "image" ? "image/png, image/jpeg" : "video/mp4";
+      imgInputRef.current.click();
+    }
+  };
+  const [textareaValue, setTextareaValue] = useState<string>("");
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const handlePost = () => {
+    console.log(textareaValue);
+  };
+
+  console.log(textareaRef.current?.value);
+  return (
+    <Card>
+      <CardContent className="p-6">
+        <input
+          type="file"
+          className="hidden"
+          ref={imgInputRef}
+          onChangeCapture={onFileChangeCapture}
+        />
+        {previewUrl && (
+          <div className="preview">
+            {imgInputRef.current?.accept.includes("video") ? (
+              <div className="w-full relative rounded-md overflow-hidden border mb-4 bg-black ">
+                <video
+                  controls
+                  className={`max-w-full mx-auto  ${uploading ? `bg-gray-300 animate-pulse` : ""}`}
+                >
+                  <source src={previewUrl} type="video/mp4" />
+                  Tu navegador no soporta la reproducción de videos.
+                </video>
+                {!uploading && (
+                  <Button
+                    size="icon"
+                    variant="secondary"
+                    className="absolute right-2 top-2"
+                    onClick={handleRemoveMedia}
+                  >
+                    <X className="h-5 w-5" />
+                  </Button>
+                )}
+              </div>
+            ) : (
+              <div className="w-full relative pt-[400px] overflow-hidden rounded-md border mb-4">
+                <Image
+                  src={previewUrl}
+                  alt="Vista previa"
+                  fill
+                  className={`max-w-full h-auto mb-4 object-cover rounded-md ${uploading ? "bg-gray-300 animate-pulse" : ""}`}
+                />
+                {!uploading && (
+                  <Button
+                    size="icon"
+                    variant="secondary"
+                    className="absolute right-2 top-2"
+                    onClick={handleRemoveMedia}
+                  >
+                    <X className="h-5 w-5" />
+                  </Button>
+                )}
+                <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black opacity-50 pointer-events-none"></div>
+              </div>
+            )}
+          </div>
+        )}
+
+        <Textarea
+          placeholder="Write something here..."
+          onChange={(e) => setTextareaValue(e.target.value)}
+          ref={textareaRef}
+        />
+        <div className="flex space-x-4 mt-4">
+          <Button
+            variant="outline"
+            className="flex-1"
+            onClick={() => handleUploadMedia("image")}
+          >
+            <FileImage className="mr-2 h-4 w-4" />
+            Upload photo
+          </Button>
+          <Button
+            variant="outline"
+            className="flex-1"
+            onClick={() => handleUploadMedia("video")}
+          >
+            <Video className="mr-2 h-4 w-4" />
+            Upload video
+          </Button>
+          <Button
+            variant="outline"
+            className="flex-1"
+            disabled={uploading || !textareaRef.current?.value}
+            onClick={() =>
+              textareaRef.current?.textContent
+                ? handlePost()
+                : textareaRef.current?.focus()
+            }
+          >
+            <FileImage className="mr-2 h-4 w-4" />
+            {textareaRef.current?.value ? "Send post" : "Write a post"}
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
+
+const PostCard = () => {
+  return (
+    <Card>
+      <CardContent className="p-6">
+        <div className="flex items-center space-x-4 mb-4">
+          <Avatar>
+            <AvatarImage
+              src="/placeholder.svg?height=40&width=40"
+              alt="Tony Stark"
+            />
+            <AvatarFallback>TS</AvatarFallback>
+          </Avatar>
+          <div>
+            <h3 className="font-semibold">Tony Stark</h3>
+            <p className="text-sm text-muted-foreground">
+              Cognitive Person | Enthusiastic scientist | Worked on 300....
+            </p>
+          </div>
+        </div>
+        <p className="text-red-500 font-semibold mb-2">*Immediate HIRING*</p>
+        <p>
+          Looking for an amazing scientist who knows how to build a suit that
+          can fly high in the sky without any problem.
+        </p>
+      </CardContent>
+    </Card>
+  );
+};
+
+const PeopleYouMayKnow = () => {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>People you may know</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {[
+          "Tony Stark",
+          "Bruce Banners",
+          "Natasha Ramanoff",
+          "Barton Clint",
+        ].map((name, index) => (
+          <div key={index} className="flex items-center space-x-4">
+            <Avatar>
+              {/* <AvatarImage
+                src={`/placeholder.svg?height=40&width=40&text=${name.charAt(0)}`}
+                alt={name}
+              /> */}
+              <AvatarFallback>
+                {name
+                  .split(" ")
+                  .map((n) => n[0])
+                  .join("")}
+              </AvatarFallback>
+            </Avatar>
+            <div>
+              <h4 className="font-semibold">{name}</h4>
+              <p className="text-sm text-muted-foreground">6M+ Followers</p>
+            </div>
+          </div>
+        ))}
+      </CardContent>
+    </Card>
+  );
+};
+
+const BoostYourPost = () => {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Boost your post</CardTitle>
+      </CardHeader>
+      <CardContent>
+        {/* <Image
+          src="/placeholder.svg?height=200&width=300"
+          alt="Dog"
+          className="w-full rounded-md mb-4"
+        /> */}
+        <p className="text-sm text-muted-foreground">
+          @steve_rogers With my lovable dog named Bruno with a smile &...
+        </p>
+        <div className="flex items-center mt-2">
+          <Avatar className="h-6 w-6">
+            <AvatarImage src="/placeholder.svg?height=24&width=24" alt="User" />
+            <AvatarFallback>U</AvatarFallback>
+          </Avatar>
+          <span className="text-sm ml-2">
+            & 180 others liked your post &...
+          </span>
+        </div>
+      </CardContent>
+    </Card>
+  );
+};

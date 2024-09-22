@@ -8,7 +8,6 @@ export const authenticate = async (
 
   const userData: UserDataToAuthenticate = {
     username: parsedData?.username,
-    email: parsedData?.email,
     password: parsedData.password,
   };
 

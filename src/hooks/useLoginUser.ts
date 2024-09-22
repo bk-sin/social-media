@@ -1,4 +1,4 @@
-import { registerSchema, UserDataToRegister } from "@/modules/users/domain";
+import { loginSchema, UserDataToAuthenticate } from "@/modules/users/domain";
 import { useAuthStore } from "@/store/auth";
 import { handleError } from "@/utils/errorHandler";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -10,15 +10,16 @@ import { z } from "zod";
 export const useLoginUser = () => {
   const [loading, setLoading] = useState(false);
 
-  const register = async (data: UserDataToRegister) => {
+  const login = async (data: UserDataToAuthenticate) => {
     setLoading(true);
 
     try {
-      const response = await axios.post("/api/users/register", data);
-      const { token } = response.data;
-
+      const response = await axios.post("/api/users/login", data);
+      const { token, ...user } = response.data;
+      console.log(user);
       if (token) {
         useAuthStore.getState().setToken(token);
+        useAuthStore.getState().setUser(user);
       }
 
       alert("Registration successful!");
@@ -32,35 +33,34 @@ export const useLoginUser = () => {
   };
 
   const [showPassword, setShowPassword] = useState(false);
-  const defaultValues: UserDataToRegister = {
-    email: "",
-    password: "",
-    username: "",
+  const defaultValues: UserDataToAuthenticate = {
+    username: "emilianogalegre",
+    password: "Emiliano97!",
   };
 
   const showPasswordHandler = () => {
     setShowPassword((prev) => !prev);
   };
 
-  const form = useForm<z.infer<typeof registerSchema>>({
-    resolver: zodResolver(registerSchema),
+  const form = useForm<z.infer<typeof loginSchema>>({
+    resolver: zodResolver(loginSchema),
     defaultValues,
   });
 
   useEffect(() => {
     setLoading(form.formState.isSubmitting);
   }, [form.formState.isSubmitting]);
-  const onSubmit = async (values: z.infer<typeof registerSchema>) => {
+  const onSubmit = async (values: z.infer<typeof loginSchema>) => {
+    console.log(values);
     try {
-      await register(values);
-      form.reset();
+      await login(values);
+      //form.reset();
     } catch (err) {
       console.error("Error during registration", err);
     }
   };
 
   return {
-    register,
     loading,
     showPassword,
     showPasswordHandler,

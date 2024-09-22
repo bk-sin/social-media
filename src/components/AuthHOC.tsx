@@ -24,7 +24,7 @@ const AuthHOC = (WrappedComponent: React.FC, options: AuthHOCOptions) => {
     useEffect(() => {
       if (!loading) {
         if (isPrivate && !token) {
-          router.push("/login");
+          router.push("/register");
         } else if (!isPrivate && token) {
           router.push("/");
         }

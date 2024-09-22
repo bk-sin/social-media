@@ -59,3 +59,55 @@ export const registerSchema = z.object({
       message: errorMessages.password.noSpaces,
     }),
 });
+
+export const loginSchema = z.object({
+  username: z
+    .string()
+    .min(userAuthConfig.username.minLength, {
+      message: errorMessages.username.minLength(
+        userAuthConfig.username.minLength,
+      ),
+    })
+    .max(userAuthConfig.username.maxLength, {
+      message: errorMessages.username.maxLength(
+        userAuthConfig.username.maxLength,
+      ),
+    })
+    .regex(userAuthConfig.username.regex, {
+      message: errorMessages.username.invalidChars,
+    })
+    .refine((username) => !/\s/.test(username), {
+      message: errorMessages.username.noSpaces,
+    }),
+
+  password: z
+    .string()
+    .min(userAuthConfig.password.minLength, {
+      message: errorMessages.password.minLength(
+        userAuthConfig.password.minLength,
+      ),
+    })
+    .max(userAuthConfig.password.maxLength, {
+      message: errorMessages.password.maxLength(
+        userAuthConfig.password.maxLength,
+      ),
+    })
+    .refine((password) => !/\s/.test(password), {
+      message: errorMessages.password.noSpaces,
+    })
+    .refine((password) => userAuthConfig.password.hasLowerCase.test(password), {
+      message: errorMessages.password.hasLowerCase,
+    })
+    .refine((password) => userAuthConfig.password.hasUpperCase.test(password), {
+      message: errorMessages.password.hasUpperCase,
+    })
+    .refine((password) => userAuthConfig.password.hasNumber.test(password), {
+      message: errorMessages.password.hasNumber,
+    })
+    .refine(
+      (password) => userAuthConfig.password.hasSpecialChar.test(password),
+      {
+        message: errorMessages.password.hasSpecialChar,
+      },
+    ),
+});

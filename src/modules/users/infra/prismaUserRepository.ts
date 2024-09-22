@@ -33,10 +33,10 @@ export const prismaUserRepository: UserRepository = {
     }
   },
   authenticate: async (userData: UserDataToAuthenticate) => {
-    const { username, email, password } = userData;
+    const { username, password } = userData;
 
     const user = await prisma.user.findFirst({
-      where: { OR: [{ email }, { username }] },
+      where: { username },
     });
 
     if (!user) {

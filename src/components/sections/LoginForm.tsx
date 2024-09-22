@@ -24,7 +24,6 @@ import { useRouter } from "next/router";
 const LoginForm = () => {
   const { loading, form, showPassword, showPasswordHandler, onSubmit } =
     useLoginUser();
-
   const router = useRouter();
   const onRegisterButtonClick = () => {
     router.push("/register");
@@ -62,7 +61,7 @@ const LoginForm = () => {
                       <div className="relative">
                         <Input
                           {...field}
-                          autoComplete="new-password"
+                          autoComplete="password"
                           type={showPassword ? "text" : "password"}
                         />
                         <Button
