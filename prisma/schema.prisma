@@ -19,6 +19,10 @@ model User {
   followers Follow[]  @relation("followsRelation")
   likes     Like[]
   posts     Post[]
+
+  sentimentAnalysis SentimentAnalysis[]
+
+  profile UserProfile[]
 }
 
 model Post {
@@ -30,6 +34,19 @@ model Post {
   comments    Comment[]
   likes       Like[]
   user        User         @relation(fields: [userId], references: [id])
+
+  sentimentAnalysis SentimentAnalysis[]
+}
+
+
+model UserProfile {
+  id        Int     @id @default(autoincrement())
+  userId    Int     @unique
+  user      User    @relation(fields: [userId], references: [id])
+
+  fullName  String 
+  bio       String 
+  avatarUrl String
 }
 
 model Attachment {
@@ -67,4 +84,17 @@ model Follow {
   createdAt   DateTime @default(now())
   follower    User     @relation("followersRelation", fields: [followerId], references: [id])
   following   User     @relation("followsRelation", fields: [followingId], references: [id])
+}
+
+model SentimentAnalysis{
+  id          Int      @id @default(autoincrement())
+  postId      Int
+  userId       Int
+  positive     Float
+  negative     Float
+  neutral      Float
+  createdAt    DateTime @default(now())
+
+  post Post @relation(fields: [postId], references: [id])
+  user User @relation(fields: [userId], references: [id])
 }

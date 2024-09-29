@@ -20,6 +20,17 @@ CREATE TABLE "Post" (
 );
 
 -- CreateTable
+CREATE TABLE "UserProfile" (
+    "id" SERIAL NOT NULL,
+    "userId" INTEGER NOT NULL,
+    "fullName" TEXT NOT NULL,
+    "bio" TEXT NOT NULL,
+    "avatarUrl" TEXT NOT NULL,
+
+    CONSTRAINT "UserProfile_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "Attachment" (
     "id" SERIAL NOT NULL,
     "postId" INTEGER NOT NULL,
@@ -61,14 +72,33 @@ CREATE TABLE "Follow" (
     CONSTRAINT "Follow_pkey" PRIMARY KEY ("id")
 );
 
+-- CreateTable
+CREATE TABLE "SentimentAnalysis" (
+    "id" SERIAL NOT NULL,
+    "postId" INTEGER NOT NULL,
+    "userId" INTEGER NOT NULL,
+    "positive" DOUBLE PRECISION NOT NULL,
+    "negative" DOUBLE PRECISION NOT NULL,
+    "neutral" DOUBLE PRECISION NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "SentimentAnalysis_pkey" PRIMARY KEY ("id")
+);
+
 -- CreateIndex
 CREATE UNIQUE INDEX "User_username_key" ON "User"("username");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
 
+-- CreateIndex
+CREATE UNIQUE INDEX "UserProfile_userId_key" ON "UserProfile"("userId");
+
 -- AddForeignKey
 ALTER TABLE "Post" ADD CONSTRAINT "Post_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "UserProfile" ADD CONSTRAINT "UserProfile_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Attachment" ADD CONSTRAINT "Attachment_postId_fkey" FOREIGN KEY ("postId") REFERENCES "Post"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -90,3 +120,9 @@ ALTER TABLE "Follow" ADD CONSTRAINT "Follow_followerId_fkey" FOREIGN KEY ("follo
 
 -- AddForeignKey
 ALTER TABLE "Follow" ADD CONSTRAINT "Follow_followingId_fkey" FOREIGN KEY ("followingId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "SentimentAnalysis" ADD CONSTRAINT "SentimentAnalysis_postId_fkey" FOREIGN KEY ("postId") REFERENCES "Post"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "SentimentAnalysis" ADD CONSTRAINT "SentimentAnalysis_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

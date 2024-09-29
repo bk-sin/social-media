@@ -15,6 +15,7 @@ export const verifyPassword = async (
 };
 
 import jwt from "jsonwebtoken";
+import { NextApiRequest, NextApiResponse } from "next";
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
@@ -29,13 +30,31 @@ export function generateToken(
   return jwt.sign(payload, JWT_SECRET, { expiresIn });
 }
 
-export function verifyToken(token: string): object | string {
-  if (!JWT_SECRET) {
-    throw new Error("No se ha definido el JWT_SECRET");
-  }
+export function verifyToken(req: NextApiRequest, res: NextApiResponse) {
   try {
-    return jwt.verify(token, JWT_SECRET);
+    const { authorization } = req.headers;
+
+    if (!authorization) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+
+    const token = authorization.split(" ")[1];
+    const decodedToken = jwt.verify(
+      token,
+      process.env.JWT_SECRET || "your-secret-key",
+    );
+
+    const userId = (decodedToken as { id: string }).id;
+
+    return userId;
   } catch (error) {
-    throw new Error("Invalid or expired token");
+    if (error instanceof Error) {
+      if (error.name === "TokenExpiredError") {
+        throw new Error(
+          "El token ha expirado. Por favor, inicia sesión de nuevo.",
+        );
+      }
+    }
+    throw new Error("Error desconocido al verificar el token.");
   }
 }
