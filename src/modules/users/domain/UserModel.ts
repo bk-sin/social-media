@@ -4,6 +4,8 @@ export interface User {
   email: string;
   password: string;
   createdAt: Date;
+  avatarUrl: string;
+  fullname: string;
 }
 
 export type UserDataToRegister = Omit<User, "id" | "createdAt">;

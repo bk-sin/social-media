@@ -1,15 +1,32 @@
 import Head from "next/head";
 import localFont from "next/font/local";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Cog, LogOut, MessageCircle, User, Users } from "lucide-react";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Cog,
+  Heart,
+  LogOut,
+  MessageCircle,
+  MessageCircleIcon,
+  User,
+  Users,
+} from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuthStore } from "@/store/auth";
 import NavBar from "@/components/sections/NavBar";
 import PostForm from "@/components/sections/PostForm";
-import { useEffect } from "react";
-import usePostStore, { Post } from "@/store/posts";
+import { useEffect, useState } from "react";
+import usePostStore, { Like, Post } from "@/store/posts";
 import React from "react";
+import axios from "@/utils/axiosConfig";
+import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 
 const geistSans = localFont({
   src: "../styles/fonts/GeistVF.woff",
@@ -33,6 +50,32 @@ export default function Home() {
       </Head>
       <div className={`${geistSans.variable} ${geistMono.variable}`}>
         <NavBar />
+        <div className="flex flex-col min-h-screen bg-gradient-to-b from-purple-50 to-pink-100">
+          <section className="w-full py-12 md:py-24 lg:py-32 xl:py-48">
+            <div className="container px-4 md:px-6">
+              <div className="flex flex-col items-center space-y-4 text-center">
+                <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl lg:text-6xl/none bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-pink-600">
+                  Create, Enhance, Share with AI
+                </h1>
+                <p className="mx-auto max-w-[700px] text-gray-500 md:text-xl dark:text-gray-400">
+                  VisualAI revolutionizes social media with cutting-edge AI
+                  technology. Transform your photos, generate stunning visuals,
+                  and connect like never before.
+                </p>
+                <div className="w-full max-w-sm space-y-2">
+                  <Input
+                    type="email"
+                    placeholder="Enter your email"
+                    className="rounded-full"
+                  />
+                  <Button className="w-full rounded-full" size="lg">
+                    Join the Waitlist
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
         <main className="container mx-auto mt-8 grid grid-cols-4 gap-8">
           <aside className="col-span-1">
             <Sidebar />
@@ -141,6 +184,18 @@ const Sidebar = () => {
 };
 
 const PostCard = (props: Post) => {
+  const { user } = useAuthStore();
+  const [newComment, setNewComment] = useState("");
+  const [showAllComments, setShowAllComments] = useState(false);
+  const [showInputComment, setShowInputComment] = useState(false);
+  const handleCommentSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    // Lógica para enviar el nuevo comentario
+  };
+
+  const visibleComments = showAllComments
+    ? props.comments
+    : props.comments.slice(0, 3);
   return (
     <Card>
       <CardContent className="p-6">
@@ -153,15 +208,137 @@ const PostCard = (props: Post) => {
             <AvatarFallback>TS</AvatarFallback>
           </Avatar>
           <div>
-            <h3 className="font-semibold">{props.userId}</h3>
+            <h3 className="font-semibold">
+              {props.user.profile[0]?.fullName || props.user.username}
+            </h3>
             <p className="text-sm text-muted-foreground">
-              Cognitive Person | Enthusiastic scientist | Worked on 300....
+              @{props.user.username}
             </p>
           </div>
         </div>
         <p>{props.content}</p>
+        <div className="flex items-center justify-between text-sm text-muted-foreground mt-4">
+          <span className="w-full">
+            {new Date(props.createdAt).toLocaleString()}
+          </span>
+          <div className="flex items-center space-x-4">
+            {user && (
+              <LikePost
+                postId={props.id}
+                initialLikes={props.likes}
+                userId={user.id}
+              />
+            )}
+            <Button
+              className="flex items-center space-x-1"
+              variant="outline"
+              onClick={() => setShowInputComment(true)}
+            >
+              <MessageCircleIcon className="w-4 h-4" />
+              <span>{props.comments?.length || 0}</span>
+            </Button>
+          </div>
+        </div>
       </CardContent>
+      <CardFooter className="flex flex-col space-y-4">
+        <div className="w-full space-y-4">
+          {visibleComments.map((comment) => (
+            <div key={comment.id} className="flex space-x-4">
+              <Avatar>
+                <AvatarImage
+                  src={comment.user.avatarUrl}
+                  alt={comment.user.fullname}
+                />
+                <AvatarFallback>
+                  {comment.user.fullname.slice(0, 2).toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
+              <div className="flex-1 space-y-1">
+                <div className="flex items-center justify-between">
+                  <h4 className="font-semibold">{comment.user.fullname}</h4>
+                  <span className="text-xs text-muted-foreground">
+                    {new Date(comment.createdAt).toLocaleString()}
+                  </span>
+                </div>
+                <p className="text-sm">{comment.content}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Botón para ver más comentarios si hay más de 3 */}
+        {props.comments.length > 3 && !showAllComments && (
+          <Button
+            variant="link"
+            className="w-full text-left"
+            onClick={() => setShowAllComments(true)}
+          >
+            Ver más comentarios
+          </Button>
+        )}
+
+        {/* Formulario para enviar un comentario */}
+        {showInputComment && (
+          <form onSubmit={handleCommentSubmit} className="w-full space-y-4">
+            <Textarea
+              placeholder="Write a comment..."
+              value={newComment}
+              onChange={(e) => setNewComment(e.target.value)}
+              className="w-full"
+            />
+            <Button type="submit" className="w-full">
+              Post Comment
+            </Button>
+          </form>
+        )}
+      </CardFooter>
     </Card>
+  );
+};
+
+const LikePost = ({
+  postId,
+  initialLikes,
+  userId,
+}: {
+  postId: number;
+  initialLikes: Like[];
+  userId: number;
+}) => {
+  const [likes, setLikes] = useState(initialLikes);
+  const [liked, setLiked] = useState(
+    likes.some((like) => like.userId === userId),
+  );
+
+  const handleLikeClick = async () => {
+    try {
+      setLiked(!liked);
+      setLikes((prevLikes) =>
+        liked
+          ? prevLikes.filter((like) => like.userId !== userId)
+          : [...prevLikes, { id: 0, postId, userId, createdAt: new Date() }],
+      );
+      await axios.post("/api/posts/like", { postId });
+    } catch (error) {
+      setLiked(liked);
+      setLikes((prevLikes) =>
+        liked
+          ? [...prevLikes, { id: 0, postId, userId, createdAt: new Date() }]
+          : prevLikes.filter((like) => like.userId !== userId),
+      );
+    }
+  };
+
+  return (
+    <Button
+      variant={liked ? "default" : "outline"}
+      className="justify-start"
+      size="sm"
+      onClick={handleLikeClick}
+    >
+      <Heart className="mr-2 h-4 w-4" fill={liked ? "currentColor" : "none"} />{" "}
+      {likes.length}
+    </Button>
   );
 };
 

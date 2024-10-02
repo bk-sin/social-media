@@ -1,3 +1,4 @@
+import { User } from "@/modules/users/domain";
 import axios from "@/utils/axiosConfig";
 import { create } from "zustand";
 
@@ -10,6 +11,7 @@ interface Attachments {
 }
 
 interface Comment {
+  user: User;
   id: number;
   userId: number;
   postId: number;
@@ -17,7 +19,7 @@ interface Comment {
   createdAt: Date;
 }
 
-interface Like {
+export interface Like {
   id: number;
   userId: number;
   postId: number;
@@ -32,6 +34,15 @@ export interface Post {
   attachments: Attachments[];
   comments: Comment[];
   likes: Like[];
+  user: {
+    email: string;
+    username: string;
+    profile: {
+      fullName: string;
+      bio: string;
+      avatarUrl: string;
+    }[];
+  };
 }
 
 interface PostStore {
