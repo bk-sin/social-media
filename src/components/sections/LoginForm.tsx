@@ -20,14 +20,23 @@ import {
 import { Input } from "@/components/ui/input";
 import { useLoginUser } from "@/hooks/useLoginUser";
 import { useRouter } from "next/router";
+import { useEffect } from "react";
+import { useAuthStore } from "@/store/auth";
 
 const LoginForm = () => {
   const { loading, form, showPassword, showPasswordHandler, onSubmit } =
     useLoginUser();
+  const { token } = useAuthStore((state) => state);
   const router = useRouter();
   const onRegisterButtonClick = () => {
     router.push("/register");
   };
+
+  useEffect(() => {
+    token && router.push("/");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [token]);
+
   return (
     <Card className="w-full max-w-md mx-auto">
       <CardHeader>

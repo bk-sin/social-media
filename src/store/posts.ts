@@ -1,5 +1,6 @@
 import { User } from "@/modules/users/domain";
 import axios from "@/utils/axiosConfig";
+import { SentimentAnalysis } from "@prisma/client";
 import { create } from "zustand";
 
 interface Attachments {
@@ -43,6 +44,7 @@ export interface Post {
       avatarUrl: string;
     }[];
   };
+  sentimentAnalysis: SentimentAnalysis[];
 }
 
 interface PostStore {

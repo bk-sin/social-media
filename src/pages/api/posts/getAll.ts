@@ -17,7 +17,6 @@ export default async function handler(
     verifyToken(req, res);
 
     const posts = await getPosts(postRepository);
-    console.log(posts);
     res.status(200).json(posts);
   } catch (error) {
     console.error("Error creating post:", error);

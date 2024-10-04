@@ -16,13 +16,12 @@ export const useLoginUser = () => {
     try {
       const response = await axios.post("/api/users/login", data);
       const { token, ...user } = response.data;
-      console.log(user);
       if (token) {
         useAuthStore.getState().setToken(token);
         useAuthStore.getState().setUser(user);
       }
 
-      alert("Registration successful!");
+      alert("Login successful!");
     } catch (err) {
       const errorMessage = handleError(err);
       console.error(errorMessage);
@@ -51,10 +50,8 @@ export const useLoginUser = () => {
     setLoading(form.formState.isSubmitting);
   }, [form.formState.isSubmitting]);
   const onSubmit = async (values: z.infer<typeof loginSchema>) => {
-    console.log(values);
     try {
       await login(values);
-      //form.reset();
     } catch (err) {
       console.error("Error during registration", err);
     }

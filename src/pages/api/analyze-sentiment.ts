@@ -10,10 +10,10 @@ export default async function handler(
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  const { text } = req.body;
+  const { text, postData } = req.body;
 
   try {
-    const sentiment = await analyzeSentiment(text);
+    const sentiment = await analyzeSentiment(text, postData);
     res.status(200).json(sentiment);
   } catch (err) {
     const errorMessage = handleError(err);

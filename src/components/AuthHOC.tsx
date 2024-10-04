@@ -24,12 +24,13 @@ const AuthHOC = (WrappedComponent: React.FC, options: AuthHOCOptions) => {
     useEffect(() => {
       if (!loading) {
         if (isPrivate && !token) {
-          router.push("/register");
+          router.push("/");
         } else if (!isPrivate && token) {
           router.push("/");
         }
       }
-    }, [loading, token, router, isPrivate]);
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [token]);
 
     if (loading) {
       return <div>Cargando...</div>;
@@ -38,11 +39,6 @@ const AuthHOC = (WrappedComponent: React.FC, options: AuthHOCOptions) => {
     if (isPrivate && !token) {
       return null;
     }
-
-    if (!isPrivate && token) {
-      return null;
-    }
-
     return <WrappedComponent {...props} />;
   };
 

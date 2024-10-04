@@ -2,6 +2,7 @@ import { useState, useRef, useCallback } from "react";
 import ImageKit from "imagekit";
 import { handleError } from "@/utils/errorHandler";
 import axios from "@/utils/axiosConfig";
+import { Post } from "@/store/posts";
 
 const imagekit = new ImageKit({
   publicKey: process.env.NEXT_PUBLIC_IMAGEKIT_PUBLIC_KEY || "",
@@ -105,7 +106,17 @@ export const usePostForm = () => {
       const response = await axios.post("/api/posts/create", {
         content: textareaValue,
       });
-      return response.data;
+      const sentimentResponse = await axios.post("/api/analyze-sentiment", {
+        text: textareaValue,
+        postData: response.data,
+      });
+
+      const data: Post = {
+        ...response.data,
+        sentimentAnalysis: [sentimentResponse.data],
+      };
+
+      return data;
     } catch (err) {
       const errorMessage = handleError(err);
       console.error(errorMessage);

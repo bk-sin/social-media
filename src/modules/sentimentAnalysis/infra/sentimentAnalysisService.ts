@@ -1,5 +1,7 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { defaultConfig } from "../domain";
+import prisma from "@/database/prismaClient";
+import { Post } from "@/store/posts";
 
 const genAI = new GoogleGenerativeAI(
   process.env.NEXT_PUBLIC_GOOGLE_AI_API_KEY as string,
@@ -8,6 +10,7 @@ const genAI = new GoogleGenerativeAI(
 export const analyzeSentiment = async (
   text: string,
   config = defaultConfig,
+  postData: Post,
 ) => {
   try {
     const model = genAI.getGenerativeModel({ model: config.model });
@@ -16,6 +19,15 @@ export const analyzeSentiment = async (
     const response = await result.response;
     const responseText = await response.text();
     const sentiment = JSON.parse(responseText);
+    await prisma.sentimentAnalysis.create({
+      data: {
+        postId: postData.id,
+        userId: postData.userId,
+        positive: sentiment.positive,
+        negative: sentiment.negative,
+        neutral: sentiment.neutral,
+      },
+    });
 
     return sentiment;
   } catch (error) {
