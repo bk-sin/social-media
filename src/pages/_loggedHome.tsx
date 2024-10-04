@@ -90,7 +90,9 @@ const PostList = () => {
           <PostCardSkeleton />
         </>
       ) : (
-        posts?.map((data) => <PostCard {...data} key={data.id} />)
+        posts?.map((data) =>
+          data?.id ? <PostCard {...data} key={data.id} /> : null,
+        )
       )}
     </div>
   );
@@ -182,6 +184,7 @@ import {
   HoverCardContent,
   HoverCardTrigger,
 } from "@/components/ui/hover-card";
+import Image from "next/image";
 
 const getSentimentIcon = (type: string) => {
   switch (type) {
@@ -216,7 +219,7 @@ const getSentimentTextColor = (type: string) => {
     case "negative":
       return "text-red-500";
     default:
-      return "text-gray-500"; // Color por defecto
+      return "text-gray-500";
   }
 };
 
@@ -314,6 +317,30 @@ const PostCard = (props: Post) => {
               <SentimentAnalysis sentiment={props.sentimentAnalysis[0]} />
             ) : null}
           </div>
+          {props.attachments?.length > 0 && (
+            <div className="preview">
+              {props.attachments[0].mediaType.includes("non-image") ? (
+                <div className="w-full relative rounded-md overflow-hidden border mb-4 bg-black ">
+                  <video controls className={`max-w-full mx-auto`}>
+                    <source
+                      src={props.attachments[0].mediaUrl}
+                      type="video/mp4"
+                    />
+                    Tu navegador no soporta la reproducción de videos.
+                  </video>
+                </div>
+              ) : (
+                <div className="w-full relative pt-[400px] overflow-hidden rounded-md border mb-4">
+                  <Image
+                    src={props.attachments[0].mediaUrl}
+                    alt="Vista previa"
+                    fill
+                    className={`max-w-full h-auto mb-4 object-cover rounded-md`}
+                  />
+                </div>
+              )}
+            </div>
+          )}
           <p>{props.content}</p>
           <div className="flex items-center justify-between text-sm text-muted-foreground mt-4">
             <span className="w-full">

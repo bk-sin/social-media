@@ -12,6 +12,31 @@ export class PrismaPostRepository implements PostRepository {
           content: post.content,
           userId: post.userId,
         },
+        include: {
+          attachments: true,
+          comments: true,
+          likes: true,
+          user: {
+            select: {
+              username: true,
+              email: true,
+              profile: {
+                select: {
+                  fullName: true,
+                  bio: true,
+                  avatarUrl: true,
+                },
+              },
+            },
+          },
+          sentimentAnalysis: {
+            select: {
+              positive: true,
+              negative: true,
+              neutral: true,
+            },
+          },
+        },
       });
     } catch (error) {
       throw new Error(`Failed to create post: ${error}`);
@@ -40,13 +65,19 @@ export class PrismaPostRepository implements PostRepository {
             },
           },
         },
+        sentimentAnalysis: {
+          select: {
+            positive: true,
+            negative: true,
+            neutral: true,
+          },
+        },
       },
     });
   }
 
   async like(postId: number, userId: string | void): Promise<Post> {
     try {
-      // Verificar si el usuario ya ha dado like al post
       const existingLike = await prisma.like.findFirst({
         where: {
           postId: postId,
@@ -54,7 +85,6 @@ export class PrismaPostRepository implements PostRepository {
         },
       });
 
-      // Si ya ha dado like, lo eliminamos (dislike)
       if (existingLike) {
         return await prisma.post.update({
           where: {
@@ -63,17 +93,16 @@ export class PrismaPostRepository implements PostRepository {
           data: {
             likes: {
               delete: {
-                id: existingLike.id, // Usar el ID del like existente para eliminarlo
+                id: existingLike.id,
               },
             },
           },
           include: {
-            likes: true, // Retornar los likes actualizados
+            likes: true,
           },
         });
       }
 
-      // Si no ha dado like, lo creamos
       return await prisma.post.update({
         where: {
           id: postId,
@@ -86,7 +115,7 @@ export class PrismaPostRepository implements PostRepository {
           },
         },
         include: {
-          likes: true, // Retornar los likes actualizados
+          likes: true,
         },
       });
     } catch (error) {

@@ -33,7 +33,7 @@ This is a **social media application** built using **Next.js**, **Prisma**, and 
 1. Clone the repository:
 
    ```bash
-   git clone https://github.com/yourusername/social-media.git
+   git clone https://github.com/bk-sin/social-media.git
    cd social-media
    ```
 

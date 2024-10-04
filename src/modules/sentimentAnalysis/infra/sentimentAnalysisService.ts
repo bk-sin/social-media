@@ -35,3 +35,53 @@ export const analyzeSentiment = async (
     return null;
   }
 };
+
+export const getSentimentCountsByUser = async (userId: number) => {
+  try {
+    const posts = await prisma.sentimentAnalysis.findMany({
+      where: {
+        userId: userId,
+      },
+      select: {
+        id: true,
+        positive: true,
+        negative: true,
+        neutral: true,
+      },
+    });
+    const sentimentCounts = posts.reduce(
+      (acc, post) => {
+        const { positive, negative, neutral } = post;
+        if (positive >= negative && positive >= neutral) {
+          acc.positive += 1;
+        } else if (neutral >= positive && neutral >= negative) {
+          acc.neutral += 1;
+        } else {
+          acc.negative += 1;
+        }
+        return acc;
+      },
+      { positive: 0, neutral: 0, negative: 0 },
+    );
+
+    return sentimentCounts;
+  } catch (error) {
+    throw new Error(`Failed to get sentiment counts: ${error}`);
+  }
+};
+
+export const getSentimentOverTimeByUser = async (userId: number) => {
+  const posts = await prisma.post.findMany({
+    where: {
+      userId: userId,
+    },
+    orderBy: {
+      createdAt: "asc",
+    },
+    include: {
+      sentimentAnalysis: true,
+    },
+  });
+
+  return posts.filter((post) => post.sentimentAnalysis?.length > 0);
+};

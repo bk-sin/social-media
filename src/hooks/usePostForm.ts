@@ -14,7 +14,7 @@ export const usePostForm = () => {
   const imgInputRef = useRef<HTMLInputElement | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [uploading, setUploading] = useState<boolean>(false);
-  const [fileId, setFileId] = useState<string | null>(null);
+  const [file, setFile] = useState<string | null>(null);
   const [textareaValue, setTextareaValue] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -22,18 +22,18 @@ export const usePostForm = () => {
   const handleRemoveMedia = useCallback(async () => {
     setPreviewUrl(null);
     try {
-      if (fileId) {
-        await imagekit.deleteFile(fileId);
+      if (file) {
+        await imagekit.deleteFile(file.fileId);
       }
 
-      setFileId(null);
+      setFile(null);
       if (imgInputRef.current) {
         imgInputRef.current.value = "";
       }
     } catch (error) {
       console.error("Error al eliminar el archivo", error);
     }
-  }, [fileId]);
+  }, [file]);
 
   const handleFileChangeCapture = useCallback(
     async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -56,7 +56,7 @@ export const usePostForm = () => {
       }
 
       const isChangingFile =
-        fileId && imgInputRef.current?.accept.includes(file.type);
+        file && imgInputRef.current?.accept.includes(file.type);
 
       if (isChangingFile) {
         await handleRemoveMedia();
@@ -78,8 +78,8 @@ export const usePostForm = () => {
             fileName: file.name,
             folder: "social-media",
           });
-
-          setFileId(upload?.fileId);
+          console.log(upload);
+          setFile(upload);
         } catch (error) {
           console.error("Error al subir el archivo", error);
         } finally {
@@ -89,7 +89,8 @@ export const usePostForm = () => {
 
       reader.readAsArrayBuffer(file);
     },
-    [fileId, handleRemoveMedia],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [file, handleRemoveMedia],
   );
 
   const handleUploadMedia = useCallback((type: "image" | "video") => {
@@ -101,6 +102,7 @@ export const usePostForm = () => {
   }, []);
 
   const handlePost = useCallback(async () => {
+    console.log("on submit", file);
     setLoading(true);
     try {
       const response = await axios.post("/api/posts/create", {
@@ -111,11 +113,20 @@ export const usePostForm = () => {
         postData: response.data,
       });
 
+      console.log(response.data);
+      const attachment = await axios.post("/api/attachments", {
+        postId: response.data.id,
+        mediaType: file.fileType,
+        mediaUrl: file.url,
+      });
+
       const data: Post = {
         ...response.data,
         sentimentAnalysis: [sentimentResponse.data],
+        attachments: [attachment.data],
       };
-
+      setPreviewUrl("");
+      setTextareaValue("");
       return data;
     } catch (err) {
       const errorMessage = handleError(err);
@@ -124,7 +135,7 @@ export const usePostForm = () => {
     } finally {
       setLoading(false);
     }
-  }, [textareaValue]);
+  }, [textareaValue, file]);
 
   return {
     imgInputRef,

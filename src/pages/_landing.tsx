@@ -217,9 +217,6 @@ export default function LandingPage() {
                       <Smile className="h-5 w-5 mr-2" />
                       Positive Sentiment
                     </span>
-                    <span className="text-sm text-gray-500">
-                      Confidence: 89%
-                    </span>
                   </div>
                 </motion.div>
                 <motion.div
@@ -235,9 +232,6 @@ export default function LandingPage() {
                       <Meh className="h-5 w-5 mr-2" />
                       Neutral Sentiment
                     </span>
-                    <span className="text-sm text-gray-500">
-                      Confidence: 75%
-                    </span>
                   </div>
                 </motion.div>
                 <motion.div
@@ -252,9 +246,6 @@ export default function LandingPage() {
                     <span className="text-red-500 flex items-center">
                       <Frown className="h-5 w-5 mr-2" />
                       Negative Sentiment
-                    </span>
-                    <span className="text-sm text-gray-500">
-                      Confidence: 92%
                     </span>
                   </div>
                 </motion.div>

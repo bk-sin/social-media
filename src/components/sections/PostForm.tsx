@@ -92,6 +92,7 @@ const PostForm = () => {
           <Textarea
             placeholder="Write something here..."
             onChange={(e) => setTextareaValue(e.target.value)}
+            value={textareaValue}
             ref={textareaRef}
           />
           <div className="flex space-x-4 mt-4">
@@ -114,7 +115,7 @@ const PostForm = () => {
             <Button
               variant="outline"
               className="flex-1"
-              disabled={loading || !textareaValue}
+              disabled={loading || !textareaValue || uploading}
               onClick={() =>
                 textareaValue ? handleSubmit() : textareaRef.current?.focus()
               }
